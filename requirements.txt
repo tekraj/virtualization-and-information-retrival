@@ -1,0 +1,10 @@
+# Dependencies for the TECH 400 Week 1-2 lab notebook (CLD-400/week-1-2.ipynb).
+# The Boolean retrieval / dictionaries / index-construction algorithms themselves
+# are implemented in plain Python (no IR/NLP library) -- everything below is
+# either needed to run the notebook itself, or used purely for table display.
+
+jupyter>=1.0.0          # notebook authoring/runtime (pulls in notebook + ipykernel)
+notebook>=7.0.0         # classic/Jupyter Notebook 7 web interface
+ipykernel>=6.29.0       # Python kernel used to execute the notebook
+nbconvert>=7.16.0       # lets the notebook be executed/rendered from the command line
+pandas>=2.2.0           # used only to display the incidence matrix, DP tables, and postings tables
