@@ -1,8 +1,8 @@
 # Fdb version 4
-["pdflatex"] 1788143476.43879 "/home/tekraj/pgs-cld-400-and-tech-400-combined/syllabus.tex" "syllabus.pdf" "syllabus" 1788143477.35237 0
+["pdflatex"] 1788143607.9138 "/home/tekraj/pgs-cld-400-and-tech-400-combined/syllabus.tex" "syllabus.pdf" "syllabus" 1788143608.87514 0
   "/etc/texmf/web2c/texmf.cnf" 1781194551.16959 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/home/tekraj/.texlive2023/texmf-var/web2c/pdftex/pdflatex.fmt" 1781194655 8212743 ead8af01d2e08995c42aeef28529f5bd ""
-  "/home/tekraj/pgs-cld-400-and-tech-400-combined/syllabus.tex" 1788143476.18193 61348 98a05548772e3b5a7b6cf0898efa9737 ""
+  "/home/tekraj/pgs-cld-400-and-tech-400-combined/syllabus.tex" 1788143607.61812 61354 9e1b33ba147cf8637a0726dff2a866c8 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvb8r.tfm" 1136768653 4484 b828043cbd581d289d955903c1339981 ""
@@ -163,9 +163,9 @@
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1781194576.22482 5472669 54eaf61a88b6b7896ebd0dac973cb29c ""
   "images/pgs-logo.png" 1788025331.4084 6335 adc01653299c33ccd7f4fa463bf70229 ""
   "images/westcliff_email_logo.png" 1788025331.3409 19833 2966c06662ea5d9a5dccf09d996f4b09 ""
-  "syllabus.aux" 1788143477.28013 454 6f8c74175f140fdbd85d17a6f64ab741 "pdflatex"
-  "syllabus.out" 1788143476.99936 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "syllabus.tex" 1788143476.18193 61348 98a05548772e3b5a7b6cf0898efa9737 ""
+  "syllabus.aux" 1788143608.8075 454 6f8c74175f140fdbd85d17a6f64ab741 "pdflatex"
+  "syllabus.out" 1788143608.48638 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "syllabus.tex" 1788143607.61812 61354 9e1b33ba147cf8637a0726dff2a866c8 ""
   (generated)
   "syllabus.aux"
   "syllabus.log"
