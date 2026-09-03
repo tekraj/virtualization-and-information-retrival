@@ -8,3 +8,4 @@ notebook>=7.0.0         # classic/Jupyter Notebook 7 web interface
 ipykernel>=6.29.0       # Python kernel used to execute the notebook
 nbconvert>=7.16.0       # lets the notebook be executed/rendered from the command line
 pandas>=2.2.0           # used only to display the incidence matrix, DP tables, and postings tables
+scikit-learn
