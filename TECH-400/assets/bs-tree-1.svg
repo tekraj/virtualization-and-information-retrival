@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 650" style="background-color: #f8fafc; border-radius: 12px; font-family: sans-serif;">
+  
+  <style>
+    .node-text { font-size: 14px; font-weight: bold; fill: #0f172a; text-anchor: middle; dominant-baseline: middle; }
+    .doc-text { font-size: 11px; fill: #3b82f6; text-anchor: middle; font-weight: bold; }
+    .line { stroke: #cbd5e1; stroke-width: 2.5px; }
+    .circle { fill: #ffffff; stroke: #64748b; stroke-width: 3px; }
+  </style>
+
+  <text x="400" y="30" font-size="20" font-weight="bold" fill="#1e293b" text-anchor="middle">
+    BST For
+  </text>
+  <text x="400" y="52" font-size="12" fill="#475569" text-anchor="middle">
+    <tspan x="400" dy="0">The quick brown fox jumps</tspan>
+    <tspan x="400" dy="16">A fast box is jumping</tspan>
+    <tspan x="400" dy="16">Foxy foxes love boxes"</tspan>
+  </text>
+
+  <!-- Edges -->
+  <line x1="700" y1="80" x2="550" y2="150" class="line" /> <!-- the -> quick -->
+  <line x1="550" y1="150" x2="300" y2="220" class="line" /> <!-- quick -> brown -->
+  
+  <line x1="300" y1="220" x2="150" y2="290" class="line" /> <!-- brown -> a -->
+  <line x1="150" y1="290" x2="220" y2="360" class="line" /> <!-- a -> box -->
+  <line x1="220" y1="360" x2="270" y2="430" class="line" /> <!-- box -> boxes -->
+
+  <line x1="300" y1="220" x2="450" y2="290" class="line" /> <!-- brown -> fox -->
+  <line x1="450" y1="290" x2="350" y2="360" class="line" /> <!-- fox -> fast -->
+  <line x1="450" y1="290" x2="550" y2="360" class="line" /> <!-- fox -> jumps -->
+  
+  <line x1="550" y1="360" x2="450" y2="430" class="line" /> <!-- jumps -> is -->
+  <line x1="550" y1="360" x2="630" y2="430" class="line" /> <!-- jumps -> love -->
+  
+  <line x1="450" y1="430" x2="380" y2="500" class="line" /> <!-- is -> foxy -->
+  <line x1="450" y1="430" x2="500" y2="500" class="line" /> <!-- is -> jumping -->
+  
+  <line x1="380" y1="500" x2="330" y2="570" class="line" /> <!-- foxy -> foxes -->
+
+  <!-- Nodes -->
+  <!-- Level 0 -->
+  <g transform="translate(700, 80)">
+    <circle r="35" class="circle" />
+    <text class="node-text">the</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 1 -->
+  <g transform="translate(550, 150)">
+    <circle r="35" class="circle" />
+    <text class="node-text">quick</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 2 -->
+  <g transform="translate(300, 220)">
+    <circle r="35" class="circle" />
+    <text class="node-text">brown</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 3 -->
+  <g transform="translate(150, 290)">
+    <circle r="35" class="circle" />
+    <text class="node-text">a</text><text y="20" class="doc-text">{2}</text>
+  </g>
+  <g transform="translate(450, 290)">
+    <circle r="35" class="circle" />
+    <text class="node-text">fox</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 4 -->
+  <g transform="translate(220, 360)">
+    <circle r="35" class="circle" />
+    <text class="node-text">box</text><text y="20" class="doc-text">{2}</text>
+  </g>
+  <g transform="translate(350, 360)">
+    <circle r="35" class="circle" />
+    <text class="node-text">fast</text><text y="20" class="doc-text">{2}</text>
+  </g>
+  <g transform="translate(550, 360)">
+    <circle r="35" class="circle" />
+    <text class="node-text">jumps</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 5 -->
+  <g transform="translate(270, 430)">
+    <circle r="35" class="circle" />
+    <text class="node-text">boxes</text><text y="20" class="doc-text">{3}</text>
+  </g>
+  <g transform="translate(450, 430)">
+    <circle r="35" class="circle" />
+    <text class="node-text">is</text><text y="20" class="doc-text">{2}</text>
+  </g>
+  <g transform="translate(630, 430)">
+    <circle r="35" class="circle" />
+    <text class="node-text">love</text><text y="20" class="doc-text">{3}</text>
+  </g>
+
+  <!-- Level 6 -->
+  <g transform="translate(380, 500)">
+    <circle r="35" class="circle" />
+    <text class="node-text">foxy</text><text y="20" class="doc-text">{3}</text>
+  </g>
+  <g transform="translate(500, 500)">
+    <circle r="35" class="circle" />
+    <text class="node-text">jumping</text><text y="20" class="doc-text">{2}</text>
+  </g>
+
+  <!-- Level 7 -->
+  <g transform="translate(330, 570)">
+    <circle r="35" class="circle" />
+    <text class="node-text">foxes</text><text y="20" class="doc-text">{3}</text>
+  </g>
+
+</svg>

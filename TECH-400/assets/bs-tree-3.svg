@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" style="background-color: #f8fafc; border-radius: 12px; font-family: sans-serif;">
+  
+  <style>
+    .node-text { font-size: 14px; font-weight: bold; fill: #0f172a; text-anchor: middle; dominant-baseline: middle; }
+    .doc-text { font-size: 11px; fill: #ef4444; text-anchor: middle; font-weight: bold; }
+    .line { stroke: #cbd5e1; stroke-width: 2.5px; }
+    .circle { fill: #ffffff; stroke: #3b82f6; stroke-width: 3px; }
+  </style>
+
+  <text x="500" y="30" font-size="20" font-weight="bold" fill="#1e293b" text-anchor="middle">
+    Full BST with 3 Documents
+  </text>
+<text x="400" y="52" font-size="12" fill="#475569" text-anchor="middle">
+    <tspan x="400" dy="0">The quick brown fox jumps</tspan>
+    <tspan x="400" dy="16">you want this laptop</tspan>
+    <tspan x="400" dy="16">zebra has black and white patterns</tspan>
+  </text>
+  <!-- Edges (Lines) -->
+  <line x1="550" y1="60" x2="350" y2="150" class="line" /> <!-- the -> quick -->
+  <line x1="550" y1="60" x2="800" y2="150" class="line" /> <!-- the -> you -->
+  
+  <line x1="350" y1="150" x2="200" y2="240" class="line" /> <!-- quick -> brown -->
+  <line x1="800" y1="150" x2="700" y2="240" class="line" /> <!-- you -> want -->
+  <line x1="800" y1="150" x2="900" y2="240" class="line" /> <!-- you -> zebra -->
+  
+  <line x1="200" y1="240" x2="100" y2="330" class="line" /> <!-- brown -> black -->
+  <line x1="200" y1="240" x2="300" y2="330" class="line" /> <!-- brown -> fox -->
+  <line x1="700" y1="240" x2="600" y2="330" class="line" /> <!-- want -> this -->
+  <line x1="700" y1="240" x2="800" y2="330" class="line" /> <!-- want -> white -->
+  
+  <line x1="100" y1="330" x2="50" y2="420" class="line" /> <!-- black -> and -->
+  <line x1="300" y1="330" x2="400" y2="420" class="line" /> <!-- fox -> jumps -->
+  
+  <line x1="400" y1="420" x2="320" y2="510" class="line" /> <!-- jumps -> has -->
+  <line x1="400" y1="420" x2="480" y2="510" class="line" /> <!-- jumps -> laptop -->
+  
+  <line x1="480" y1="510" x2="560" y2="600" class="line" /> <!-- laptop -> patterns -->
+
+
+  <!-- Nodes -->
+  <!-- Level 0 -->
+  <g transform="translate(550, 60)">
+    <circle r="35" class="circle" />
+    <text class="node-text">the</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 1 -->
+  <g transform="translate(350, 150)">
+    <circle r="35" class="circle" />
+    <text class="node-text">quick</text><text y="20" class="doc-text">{1}</text>
+  </g>
+  <g transform="translate(800, 150)">
+    <circle r="35" class="circle" />
+    <text class="node-text">you</text><text y="20" class="doc-text">{2}</text>
+  </g>
+
+  <!-- Level 2 -->
+  <g transform="translate(200, 240)">
+    <circle r="35" class="circle" />
+    <text class="node-text">brown</text><text y="20" class="doc-text">{1}</text>
+  </g>
+  <g transform="translate(700, 240)">
+    <circle r="35" class="circle" />
+    <text class="node-text">want</text><text y="20" class="doc-text">{2}</text>
+  </g>
+  <g transform="translate(900, 240)">
+    <circle r="35" class="circle" />
+    <text class="node-text">zebra</text><text y="20" class="doc-text">{3}</text>
+  </g>
+
+  <!-- Level 3 -->
+  <g transform="translate(100, 330)">
+    <circle r="35" class="circle" />
+    <text class="node-text">black</text><text y="20" class="doc-text">{3}</text>
+  </g>
+  <g transform="translate(300, 330)">
+    <circle r="35" class="circle" />
+    <text class="node-text">fox</text><text y="20" class="doc-text">{1}</text>
+  </g>
+  <g transform="translate(600, 330)">
+    <circle r="35" class="circle" />
+    <text class="node-text">this</text><text y="20" class="doc-text">{2}</text>
+  </g>
+  <g transform="translate(800, 330)">
+    <circle r="35" class="circle" />
+    <text class="node-text">white</text><text y="20" class="doc-text">{3}</text>
+  </g>
+
+  <!-- Level 4 -->
+  <g transform="translate(50, 420)">
+    <circle r="35" class="circle" />
+    <text class="node-text">and</text><text y="20" class="doc-text">{3}</text>
+  </g>
+  <g transform="translate(400, 420)">
+    <circle r="35" class="circle" />
+    <text class="node-text">jumps</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 5 -->
+  <g transform="translate(320, 510)">
+    <circle r="35" class="circle" />
+    <text class="node-text">has</text><text y="20" class="doc-text">{3}</text>
+  </g>
+  <g transform="translate(480, 510)">
+    <circle r="35" class="circle" />
+    <text class="node-text">laptop</text><text y="20" class="doc-text">{2}</text>
+  </g>
+
+  <!-- Level 6 -->
+  <g transform="translate(560, 600)">
+    <circle r="35" class="circle" />
+    <text class="node-text">patterns</text><text y="20" class="doc-text">{3}</text>
+  </g>
+
+</svg>

@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 650" style="background-color: #f8fafc; border-radius: 12px; font-family: sans-serif;">
+  
+  <style>
+    .node-text { font-size: 14px; font-weight: bold; fill: #0f172a; text-anchor: middle; dominant-baseline: middle; }
+    .doc-text { font-size: 11px; fill: #3b82f6; text-anchor: middle; font-weight: bold; }
+    .line { stroke: #cbd5e1; stroke-width: 2.5px; }
+    .circle { fill: #ffffff; stroke: #64748b; stroke-width: 3px; }
+  </style>
+
+  <text x="450" y="30" font-size="20" font-weight="bold" fill="#1e293b" text-anchor="middle">
+    BST: 2
+  </text>
+<text x="400" y="52" font-size="12" fill="#475569" text-anchor="middle">
+    <tspan x="400" dy="0">The quick brown fox jumps</tspan>
+    <tspan x="400" dy="16">Your house is empty</tspan>
+    <tspan x="400" dy="16">Foxy foxes love boxes"</tspan>
+  </text>
+  <!-- Edges -->
+  <line x1="600" y1="80" x2="400" y2="160" class="line" /> <!-- the -> quick -->
+  <line x1="600" y1="80" x2="750" y2="160" class="line" /> <!-- the -> your -->
+  
+  <line x1="400" y1="160" x2="200" y2="240" class="line" /> <!-- quick -> brown -->
+  
+  <line x1="200" y1="240" x2="300" y2="320" class="line" /> <!-- brown -> fox -->
+  
+  <line x1="300" y1="320" x2="200" y2="400" class="line" /> <!-- fox -> empty -->
+  <line x1="300" y1="320" x2="400" y2="400" class="line" /> <!-- fox -> jumps -->
+  
+  <line x1="400" y1="400" x2="300" y2="480" class="line" /> <!-- jumps -> house -->
+  
+  <line x1="300" y1="480" x2="400" y2="560" class="line" /> <!-- house -> is -->
+
+  <!-- Nodes -->
+  <!-- Level 0 -->
+  <g transform="translate(600, 80)">
+    <circle r="35" class="circle" />
+    <text class="node-text">the</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 1 -->
+  <g transform="translate(400, 160)">
+    <circle r="35" class="circle" />
+    <text class="node-text">quick</text><text y="20" class="doc-text">{1}</text>
+  </g>
+  <g transform="translate(750, 160)">
+    <circle r="35" class="circle" />
+    <text class="node-text">your</text><text y="20" class="doc-text">{2}</text>
+  </g>
+
+  <!-- Level 2 -->
+  <g transform="translate(200, 240)">
+    <circle r="35" class="circle" />
+    <text class="node-text">brown</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 3 -->
+  <g transform="translate(300, 320)">
+    <circle r="35" class="circle" />
+    <text class="node-text">fox</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 4 -->
+  <g transform="translate(200, 400)">
+    <circle r="35" class="circle" />
+    <text class="node-text">empty</text><text y="20" class="doc-text">{2}</text>
+  </g>
+  <g transform="translate(400, 400)">
+    <circle r="35" class="circle" />
+    <text class="node-text">jumps</text><text y="20" class="doc-text">{1}</text>
+  </g>
+
+  <!-- Level 5 -->
+  <g transform="translate(300, 480)">
+    <circle r="35" class="circle" />
+    <text class="node-text">house</text><text y="20" class="doc-text">{2}</text>
+  </g>
+
+  <!-- Level 6 -->
+  <g transform="translate(400, 560)">
+    <circle r="35" class="circle" />
+    <text class="node-text">is</text><text y="20" class="doc-text">{2}</text>
+  </g>
+
+</svg>
