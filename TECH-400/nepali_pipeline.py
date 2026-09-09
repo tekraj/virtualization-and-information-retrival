@@ -29,6 +29,19 @@ NEPALI_STOP_WORDS = set([
 ])
 
 
+def identity_tokenizer(text):
+    """Tokenizer for TfidfVectorizer over already-lemmatized, whitespace-joined documents.
+
+    Applies the same split rule as NepaliLexicalAnalyzer.transform (whitespace plus
+    the punctuation marks common in Nepali prose) so a document that was lemmatized,
+    then rejoined with " ".join(...), tokenizes back into exactly those lemmas.
+
+    Defined at module level (rather than as a lambda) so a TfidfVectorizer
+    configured with it can still be pickled/unpickled by joblib.
+    """
+    return re.findall(r'[^\s।,\.!?;:()\'"“”]+', text)
+
+
 class NepaliLexicalAnalyzer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         self.fitted_ = True
