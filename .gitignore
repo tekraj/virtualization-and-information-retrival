@@ -40,3 +40,8 @@ yarn-error.log
 .venv/
 .claude/
 .copilot/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
