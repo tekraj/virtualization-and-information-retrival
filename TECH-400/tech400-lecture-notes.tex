@@ -1156,44 +1156,137 @@ If documents are ranked in decreasing order of their probability of relevance to
 
 The PRP is the theoretical justification for \emph{every} ranking function in this course: tf-idf/cosine, BM25, and language-model scores are all, in different ways, attempts to \emph{approximate} $P(R=1\mid d,q)$.
 
+\subsection{Intuition: The PRP as a Decision Problem}
+
+The PRP can feel like a tautology -- ``to get the best results, show the most likely relevant things first'' -- but behind this statement is a precise decision-theoretic argument, proposed by Stephen Robertson in 1977.
+
+\textbf{Analogy.} Suppose a doctor has 5 candidate medicines for a patient, each taking 1 hour to administer, tried one at a time: medicine A has an 80\% chance of curing the patient, B has 50\%, and C has 10\%. To minimize the patient's expected suffering, the doctor should try them in decreasing order of success probability: $A \to B \to C$. A search engine faces the same problem -- the user's attention is limited, and every document shown carries some probability of satisfying the need ($R=1$) or wasting the user's time ($R=0$).
+
+\textbf{Proof sketch (cost framework).} For a document $d$, let $P(R=1\mid d)$ be its probability of relevance and $P(R=0\mid d) = 1-P(R=1\mid d)$. Define two costs: $C_1$, the cost of showing a non-relevant document, and $C_0$, the cost of omitting or delaying a relevant one. The expected cost of presenting $d$ is
+\[
+EC(d) = C_1\,P(R=0\mid d) - C_0\,P(R=1\mid d) = C_1 - (C_1+C_0)\,P(R=1\mid d).
+\]
+Preferring $d_1$ over $d_2$ whenever $EC(d_1) < EC(d_2)$ and substituting the expression above, the $C_1$ terms cancel and dividing by $-(C_1+C_0)$ (flipping the inequality) gives
+\[
+P(R=1\mid d_1) > P(R=1\mid d_2).
+\]
+So minimizing expected cost is equivalent to ranking documents by decreasing $P(R=1\mid d)$ -- exactly the PRP.
+
+\textbf{Hidden assumptions (why PRP breaks in practice).}
+\begin{itemize}
+\item \textbf{Independent relevance:} $P(R=1\mid d_1)$ is assumed independent of $d_2$. If $d_1$ is a comprehensive guide and $d_2$ is an exact duplicate, $d_2$ still has high $P(R=1)$ and PRP ranks it second -- but to the user, $d_2$ now has zero marginal utility, since they already read $d_1$.
+\item \textbf{Binary utility:} documents are treated as strictly relevant or non-relevant, ignoring degree of relevance, freshness, diversity, or ambiguity in user intent.
+\end{itemize}
 \section{The Binary Independence Model (BIM)}
 
+The BIM operationalizes the PRP: it gives a concrete, computable estimate of $P(R=1\mid d,q)$ by making two strict simplifying assumptions.
+
 \begin{defbox}[Definition 5.2 -- Binary Independence Model]
-Documents and queries are represented as binary term-incidence vectors (as in Week 1's incidence matrix). ``Independence'' means terms are assumed to occur \emph{independently of one another} within the relevant documents, and independently within the non-relevant documents (a strong simplifying assumption, but one that leads to a tractable, useful ranking formula).
+\textbf{Binary document representation:} a document $D$ is represented as a binary incidence vector $\vec{x} = (x_1,\dots,x_V) \in \{0,1\}^V$ over the vocabulary, where $x_t=1$ if term $t$ is present and $x_t=0$ if absent (as in Week 1's incidence matrix). Term frequency and document length are ignored entirely.
+
+\textbf{Conditional independence:} terms are assumed to occur \emph{independently of one another} within the set of relevant documents ($R=1$), and independently within the set of non-relevant documents ($R=0$). This is a strong assumption -- real terms co-occur -- but it is exactly what makes the model tractable.
 \end{defbox}
 
-For a single query term $t$, define, over the whole judged collection: $N$ = total documents, $R$ = total relevant documents, $n_t$ = documents containing $t$, $r_t$ = relevant documents containing $t$. This gives a $2\times2$ contingency table:
+\subsection{The $2\times2$ Contingency Table}
+
+For a single query term $t$, define over the whole judged collection: $N$ = total documents, $R$ = total relevant documents, $n_t$ = documents containing $t$, $r_t$ = relevant documents containing $t$. This gives the following $2\times2$ contingency table:
 
 \begin{center}
-\begin{tabular}{@{}lcc@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
- & Relevant & Non-relevant \\
+ & Relevant Docs ($R=1$) & Non-Relevant Docs ($R=0$) & Row Totals \\
 \midrule
-$t$ present & $r_t$ & $n_t - r_t$ \\
-$t$ absent  & $R - r_t$ & $(N - n_t) - (R - r_t)$ \\
+Contains Word $t$ & $r_t$ (Hits) & $n_t - r_t$ (False Alarms) & $n_t$ (All docs with word) \\
+Missing Word $t$  & $R - r_t$ (Misses) & $(N - n_t) - (R - r_t)$ (True Negatives) & $N - n_t$ (All docs without word) \\
+\midrule
+Column Totals & $R$ (Total relevant) & $N-R$ (Total non-relevant) & $N$ (Total collection size) \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \begin{formulabox}[Key Formula 5.1 -- RSJ (Robertson--Sparck Jones) Term Weight]
-Let $p_t = r_t / R$ (probability a relevant document contains $t$) and $u_t = (n_t - r_t)/(N-R)$ (probability a non-relevant document contains $t$). The retrieval status value contributed by matching term $t$ is:
+Define the term occurrence probabilities
 \[
-c_t = \log \frac{p_t(1-u_t)}{u_t(1-p_t)}
+p_t = P(x_t=1\mid R=1) = \frac{r_t}{R}, \qquad u_t = P(x_t=1\mid R=0) = \frac{n_t-r_t}{N-R}.
 \]
-A document's overall score is the sum of $c_t$ over all query terms $t$ that it contains. Larger $c_t$ means $t$ is a much better discriminator of relevance (much more likely in relevant than non-relevant documents).
+The retrieval status value contributed by matching term $t$ is
+\[
+c_t = \log_2 \frac{p_t(1-u_t)}{u_t(1-p_t)}.
+\]
+Substituting the raw contingency-table counts for $p_t$ and $u_t$ gives the equivalent count-only form
+\[
+c_t = \log_2 \frac{r_t \cdot \big[(N-R) - (n_t - r_t)\big]}{(n_t - r_t)\cdot(R - r_t)} = \log_2 \frac{r_t \,(N - R - n_t + r_t)}{(n_t - r_t)\,(R - r_t)}.
+\]
+A document's overall score (its \emph{retrieval status value}) is the sum of $c_t$ over all query terms $t$ that it contains:
+\[
+RSV(D) = \sum_{t \,\in\, Q \cap D} c_t.
+\]
+Larger $c_t$ means $t$ is a much better discriminator of relevance (much more likely in relevant than non-relevant documents).
 \end{formulabox}
+
+\subsection{Intuition: Topic vs.\ Word}
+
+The variables in the contingency table are easy to confuse because they mix two different notions: $R$ is about the \emph{topic} the user actually wants, while $n_t$ and $r_t$ are about a \emph{specific word} $t$ used to search for it. A document can be relevant to the topic without containing the word, and it can contain the word without being relevant to the topic.
+
+\textbf{Analogy.} Suppose the search topic is ``Heart Disease'' and the search word is $t=$ ``cholesterol,'' over a collection of $N=1000$ medical documents.
+\begin{itemize}
+\item $N = 1000$ -- the entire document collection.
+\item $R = 25$ -- documents actually \emph{about} heart disease. A document can be about heart disease without ever using the word ``cholesterol'' (it might discuss ``heart attacks,'' ``stents,'' or ``blood pressure'' instead).
+\item $n_t = 50$ -- documents anywhere in the collection that contain the word ``cholesterol.'' Some of these may be dietary guides or biology textbooks that have nothing to do with heart disease.
+\item $r_t = 20$ -- the \emph{overlap}: of the 25 heart-disease documents, 20 happen to mention ``cholesterol.''
+\item $R - r_t = 5$ -- relevant documents that \emph{missed} the word (they discuss heart disease using other terms).
+\item $n_t - r_t = 30$ -- non-relevant documents that \emph{happen to contain} the word (nutrition blogs, gallstone articles, etc.).
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[font=\small]
+\draw (0,0) rectangle (8,4.2);
+\node[anchor=north west] at (0.1,4.1) {ALL DOCUMENTS ($N=1000$)};
+\draw (1.2,0.6) rectangle (4.4,3.4);
+\node[anchor=north] at (2.8,3.3) {Relevant Docs};
+\node[anchor=north] at (2.8,2.95) {about Topic ($R=25$)};
+\draw (3.6,0.6) rectangle (6.8,3.4);
+\node[anchor=north] at (5.2,3.3) {Docs with};
+\node[anchor=north] at (5.2,2.95) {Word $t$ ($n_t=50$)};
+\node at (2.2,1.4) {$R - r_t = 5$};
+\node at (4.2,1.4) {$r_t = 20$};
+\node at (5.8,1.4) {$n_t - r_t = 30$};
+\end{tikzpicture}
+\end{center}
 
 \begin{examplebox}[Worked Example 5.1 -- Computing an RSJ Term Weight]
 Collection: $N=1000$ documents, $R=25$ documents judged relevant to a query. Term $t$ appears in $n_t=50$ documents total, of which $r_t=20$ are relevant.
 
+\textbf{Step 1 -- populate the contingency table.}
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & Relevant Docs ($R=25$) & Non-Relevant Docs ($N-R=975$) & Row Totals \\
+\midrule
+Contains Word $t$ & $r_t = 20$ (Hits) & $n_t - r_t = 30$ (False Alarms) & $n_t = 50$ \\
+Missing Word $t$  & $R - r_t = 5$ (Misses) & $(1000-50)-5 = 945$ (True Negatives) & $N-n_t = 950$ \\
+\midrule
+Column Totals & $R=25$ & $N-R=975$ & $N=1000$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Step 2 -- occurrence probabilities.}
 \[
-p_t = \frac{r_t}{R} = \frac{20}{25} = 0.8, \qquad u_t = \frac{n_t-r_t}{N-R} = \frac{50-20}{1000-25} = \frac{30}{975} \approx 0.03077
+p_t = \frac{r_t}{R} = \frac{20}{25} = 0.8, \qquad 1-p_t = 0.2
 \]
 \[
-c_t = \log_2 \frac{0.8\times(1-0.03077)}{0.03077\times(1-0.8)} = \log_2\frac{0.8\times0.96923}{0.03077\times0.2} = \log_2\frac{0.77538}{0.006154}
+u_t = \frac{n_t-r_t}{N-R} = \frac{50-20}{1000-25} = \frac{30}{975} \approx 0.03077, \qquad 1-u_t \approx 0.96923
 \]
+
+\textbf{Step 3 -- RSJ weight, via probabilities.}
 \[
-= \log_2(126.0) \approx 6.977 \text{ bits}
+c_t = \log_2 \frac{0.8\times0.96923}{0.03077\times0.2} = \log_2\frac{0.77538}{0.006154} = \log_2(126.0) \approx 6.977 \text{ bits}
+\]
+
+\textbf{Verification -- direct count substitution.} Using the count-only form of Key Formula 5.1 gives the same result without computing $p_t$ and $u_t$ explicitly:
+\[
+c_t = \log_2 \frac{r_t\,(N-R-n_t+r_t)}{(n_t-r_t)(R-r_t)} = \log_2\frac{20 \times (1000-25-50+20)}{(50-20)\times(25-20)} = \log_2\frac{20\times945}{30\times5} = \log_2\frac{18900}{150} = \log_2(126) \approx 6.977 \text{ bits}
 \]
 A document containing this single term $t$ would receive a document score of $\approx6.98$.
 \end{examplebox}
@@ -1209,6 +1302,77 @@ p_t = \frac{30}{40} = 0.75, \qquad u_t = \frac{80-30}{2000-40} = \frac{50}{1960}
 \[
 c_t = \log_2\frac{0.75\times0.97449}{0.02551\times0.25} = \log_2\frac{0.73087}{0.006378} = \log_2(114.6) \approx 6.84 \text{ bits}
 \]
+
+\subsection{Query vs.\ Information Need: Where Do $R$, $p_t$, and $u_t$ Come From?}
+
+Key Formula 5.1 assumes $R$ and $r_t$ are already known -- but this hides the central dilemma of IR: the gap between a \textbf{query} and an \textbf{information need}.
+
+\begin{defbox}[Definition 5.3 -- Query vs.\ Information Need]
+The \textbf{information need} is the user's actual underlying intention (e.g., ``I want to understand heart disease, its causes, and treatments''), which exists only in the user's head. The \textbf{query} is the imperfect proxy the user types (e.g., $t=$ ``cholesterol''). A document is defined as relevant ($R=1$) if it satisfies the information need, regardless of the exact words it uses -- but the system observes only the query term $t$, never the need itself.
+\end{defbox}
+
+\textbf{Real-world analogy.} Returning to the ``Heart Disease'' / ``cholesterol'' example: the user's information need is ``I want to understand heart disease, its causes, and treatments,'' but all the system ever receives is the query term $t=$ ``cholesterol.'' The system does not read the user's mind -- it has no way to directly observe which of its $N=1000$ documents belong to the true relevant set $R=25$. All it can see, at query time, is $n_t=50$: how many documents happen to contain the word ``cholesterol.'' The true overlap $r_t=20$ is exactly the quantity the system \emph{cannot} know in advance -- it depends on the user's underlying intention, not on any word count. This is the catch-22: if $R$ (and hence $r_t$, $p_t$, $u_t$) depends on subjective intention the system cannot observe, how can it rank documents by Key Formula 5.1 at all before showing any results? In practice, probabilistic search engines resolve this in two stages.
+
+\textbf{Stage A -- the first pass (before anything is known about $R$).} With zero relevance judgments, the system falls back on two default assumptions:
+\begin{itemize}
+\item $p_t \approx 0.5$: term $t$ is assumed equally likely to appear or not appear in a relevant document (an uninformative prior).
+\item $u_t \approx n_t/N$: since the collection $N$ is huge and the (unknown) relevant set $R$ is tiny by comparison, the non-relevant set is approximated by the \emph{entire} collection.
+\end{itemize}
+Substituting these into Key Formula 5.1:
+\[
+c_t \approx \log_2 \frac{0.5\,(1-n_t/N)}{(n_t/N)\,(1-0.5)} = \log_2\frac{1-n_t/N}{n_t/N} \approx \log_2\frac{N}{n_t} \quad \text{when } n_t \ll N,
+\]
+which is exactly the \textbf{IDF (Inverse Document Frequency)} term weight. So on the very first pass -- before any relevance information exists -- the RSJ model degenerates to ranking purely by term rarity, which is precisely why tf-idf/BM25-style IDF weighting is theoretically justified as an approximation to $c_t$ under total ignorance of $R$. In the cholesterol example, the system's very first ranking would simply use $c_t \approx \log_2(1000/50) = \log_2(20) \approx 4.32$ bits -- no knowledge of the true 25 heart-disease documents is needed or used yet.
+
+\textbf{Stage B -- relevance feedback (once $R$ becomes observable).} Once initial results are shown, the system can estimate $R$ and $r_t$ in one of two ways, and then recompute $p_t$, $u_t$, and $c_t$ from Key Formula 5.1 directly:
+\begin{itemize}
+\item \textbf{Explicit/implicit feedback:} the user clicks on (or dwells on) a handful of documents, which the system treats as newly observed members of $R$. In the analogy, suppose the user clicks on 25 documents while researching heart disease, and the system notices 20 of them contain ``cholesterol'' -- it has now directly observed $R=25$, $r_t=20$, recovering the exact contingency table used in Worked Example 5.1, and can re-rank the remaining documents with the full RSJ formula ($c_t\approx6.98$ bits) instead of the IDF guess.
+\item \textbf{Pseudo-relevance feedback (PRF):} the system \emph{assumes} the top-$k$ documents from the first pass (e.g., the top 10) are relevant, sets $R=k$, counts $r_t$ within just those $k$ documents, and uses the refined weights for an automatic second retrieval pass -- without ever asking the user for real judgments. Here, the system might simply take its top 10 IDF-ranked ``cholesterol'' documents, assume all 10 are about heart disease, count how many of them actually are, and refine $c_t$ from that automatically-guessed table.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{@{}p{3.2cm}p{3.4cm}p{5.4cm}@{}}
+\toprule
+Situation & Does the system know $R$? & Formula used \\
+\midrule
+Initial query & No (assumes $R$ is small and unobserved) & IDF approximation, $c_t \approx \log_2(N/n_t)$ \\
+After clicks / PRF & Yes (estimated from clicked or top-$k$ docs) & Full RSJ formula, $c_t = \log_2\frac{p_t(1-u_t)}{u_t(1-p_t)}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This is also why the \emph{probabilistic relevance feedback} discussed next is not a separate, unrelated technique -- it is simply Stage B of the BIM: the same RSJ machinery, applied once $r_t$ and $R$ can finally be measured.
+
+\subsection{How BIM Search Works: A Step-by-Step Algorithm}
+
+Putting Stages A and B together, a BIM-based search engine runs the following pipeline. Steps 1--4 are the \textbf{initial pass} (no relevance judgments exist yet); steps 5--8 are the \textbf{update cycle}, triggered once feedback becomes available.
+
+\begin{defbox}[Algorithm 5.1 -- BIM Matching and Feedback Cycle]
+\textbf{Phase 1 -- Initial Pass}
+\begin{enumerate}
+\item \textbf{Query parsing and token extraction.} The engine receives the user's query and breaks it into a set of unique search terms $Q = \{t_1, t_2, \dots, t_k\}$.
+\item \textbf{Default parameter assignment.} With no relevance judgments yet available for this query, the system falls back on the Stage A default assumptions: $p_t = 0.5$ (a term is assumed equally likely to appear or not in an unknown relevant document) and $u_t \approx n_t/N$ (the term's overall collection frequency stands in for its rate in non-relevant documents).
+\item \textbf{First-pass term weighting.} With $p_t=0.5$, Key Formula 5.1 collapses to the IDF form:
+\[
+c_t \approx \log_2 \frac{N - n_t}{n_t}.
+\]
+\item \textbf{Document scoring and initial ranking.} For every document, the system sums the weights of its matching query terms, $RSV(D) = \sum_{t\,\in\,Q\cap D} c_t$, sorts documents in decreasing order of $RSV$, and returns the top $K$ to the user.
+\end{enumerate}
+
+\textbf{Phase 2 -- Update Cycle}
+\begin{enumerate}
+\setcounter{enumi}{4}
+\item \textbf{Capturing relevance feedback.} $R$ and $r_t$ are obtained either from \emph{explicit/implicit feedback} (the user clicks, views, or marks specific documents as useful) or from \emph{pseudo-relevance feedback (PRF)}, where the system simply assumes the top-10 documents from Phase 1 are relevant. Either way, the system now has $R$ = number of identified relevant documents, and $r_t$ = how many of them contain term $t$.
+\item \textbf{Re-estimating $p_t$ and $u_t$.} The default assumptions are replaced by empirical estimates from the newly observed counts, typically with $+0.5$ smoothing to avoid division by zero when $r_t=0$ or $r_t=R$:
+\[
+p_t = \frac{r_t + 0.5}{R + 1.0}, \qquad u_t = \frac{n_t - r_t + 0.5}{N - R + 1.0}.
+\]
+\item \textbf{Recalculating full RSJ weights.} The system recomputes $c_t$ with the full Key Formula 5.1, $c_t = \log_2\frac{p_t(1-u_t)}{u_t(1-p_t)}$. Terms that appear in nearly all identified relevant documents ($r_t \approx R$) receive a large weight boost; terms concentrated in non-relevant documents receive low or negative weights.
+\item \textbf{Re-scoring and re-ranking.} $RSV(D)$ is recomputed for every document in the collection using the updated $c_t$ values, and the results are re-ranked. Documents missed in Phase 1 -- because they lacked terms that scored well under plain IDF -- can now rise to the top if they contain terms whose $c_t$ was boosted by feedback.
+\end{enumerate}
+\end{defbox}
+
+Steps 5--8 can repeat: each new round of feedback (explicit or pseudo) re-triggers Step 5, giving the system another round of refined $p_t$, $u_t$, and $c_t$ estimates.
 
 \section{Probabilistic Relevance Feedback}
 \label{sec:vsm-vs-prob}
@@ -1235,25 +1399,35 @@ New terms discovered via & Any term with nonzero weight in $D_r$ & Any term whos
 
 \section{Language Models for Information Retrieval}
 
-\begin{defbox}[Definition 5.4 -- Query Likelihood Model]
-For each document $d$, build a \textbf{unigram language model} $M_d$: a probability distribution over vocabulary terms estimated from $d$'s own text. Rank documents by $P(q \mid M_d)$ -- the probability that $d$'s language model would have generated the query $q$. Intuitively: \emph{which document ``sounds like'' it was written by someone who would also write this query?}
-\end{defbox}
+Before deep learning, the language modeling approach to IR (pioneered by Ponte and Croft in 1998) offered a different way to think about ranking altogether. Rather than hand-crafting a weighting scheme like TF-IDF and asking ``how well does this document match the query,'' it turns the question around: \emph{for each document $d$, how likely is it that $d$'s own writer would have generated exactly this query $q$?} Concretely, we build for every document $d$ a \textbf{unigram language model} $M_d$ -- a probability distribution over vocabulary terms estimated purely from $d$'s own text -- and then rank documents by $P(q\mid M_d)$, the probability that $M_d$ would emit the query as output. Intuitively: which document ``sounds like'' it was written by someone who would also write this query? This reframes retrieval as a generative, probabilistic estimation problem, giving ranking a principled foundation instead of relying on ad-hoc heuristics.
 
-\begin{formulabox}[Key Formula 5.2 -- MLE Unigram Model and the Zero-Probability Problem]
+\subsection{From MLE to the Zero-Probability Problem}
+
+The natural starting point for $M_d$ is the maximum-likelihood estimate (MLE): the probability of a term $t$ under $d$'s language model is just its relative frequency in $d$,
 \[
-P_{\text{mle}}(t \mid d) = \frac{tf_{t,d}}{|d|}
+P_{\text{mle}}(t \mid d) = \frac{tf_{t,d}}{|d|}.
 \]
-The raw maximum-likelihood estimate assigns probability \textbf{exactly zero} to any query term absent from $d$ -- a single missing term would make the entire product $P(q\mid d)=\prod_t P(t\mid d)$ zero, however well $d$ matches the rest of the query. This is why language models for IR always \textbf{smooth} the estimate with a collection-wide background model.
-\end{formulabox}
+Assuming each query term is generated independently (the unigram assumption), the probability of the whole query is the product of the per-term probabilities:
+\[
+P(q \mid M_d) = \prod_{i=1}^{|q|} P(q_i \mid M_d).
+\]
+This is elegant, but it breaks immediately in practice. A document is a short, finite sample of text, so it is normal for $d$ to simply never contain some term $t$ that appears in the query -- not because $t$ is irrelevant to $d$'s topic, but because $d$ happened not to use that particular word. The MLE estimate then assigns $P_{\text{mle}}(t\mid d) = 0$ to that term, and because the query probability is a \textbf{product} over all query terms, a single missing term drags the \emph{entire} product to zero, however well $d$ matches every other word in the query. Left uncorrected, this would make the model unusable: nearly every document would score $P(q\mid d)=0$, and ranking would collapse to only the rare documents containing every query term verbatim.
+
+\subsection{Smoothing: Borrowing from the Collection}
+
+The fix is \textbf{smoothing}: instead of trusting $d$'s own (sparse) word counts alone, we blend them with a \textbf{background model} $P(t\mid C)$ estimated from the whole collection $C$. The intuition is that even if $d$ never used the word ``mouse,'' the collection as a whole tells us ``mouse'' is a perfectly ordinary word with some nonzero background probability, and a well-smoothed document model should inherit a small amount of that mass rather than flatly forbidding the term. Smoothing therefore does two things at once: it repairs the zero-probability problem, and -- as a side effect -- it discounts the probability mass given to frequent terms that carry little discriminating power (much like IDF does for TF-IDF), since common terms already have high background probability and gain comparatively little from appearing in $d$.
 
 \subsection{Jelinek--Mercer Smoothing}
 
-\begin{formulabox}[Key Formula 5.3 -- Jelinek--Mercer (Linear Interpolation) Smoothing]
+The simplest and most direct way to blend the two estimates is \textbf{linear interpolation}, known as Jelinek--Mercer (JM) smoothing:
 \[
-P_{JM}(t\mid d) = (1-\lambda)\,P_{\text{mle}}(t\mid d) \;+\; \lambda\, P(t\mid C)
+P_{JM}(t\mid d) = (1-\lambda)\,P_{\text{mle}}(t\mid d) \;+\; \lambda\, P(t\mid C),
 \]
-where $P(t\mid C)$ is the term's relative frequency in the whole collection $C$ (the background model) and $\lambda\in[0,1]$ controls the smoothing strength. The query likelihood is $P(q\mid d) = \prod_{t\in q} P_{JM}(t\mid d)$.
-\end{formulabox}
+where $\lambda\in[0,1]$ is a single mixing parameter controlling how much weight is shifted from the document's own statistics to the collection background. When $\lambda=0$, JM smoothing reduces exactly to the raw (and fragile) MLE estimate; as $\lambda\to1$, the document model is dominated by the collection and stops discriminating between documents at all. In between, every term -- whether it occurs in $d$ or not -- receives a nonzero probability, because $P(t\mid C)>0$ for any term that appears anywhere in the collection. The query likelihood under this smoothed model is simply the product of the smoothed per-term probabilities,
+\[
+P(q\mid d) = \prod_{t\in q} P_{JM}(t\mid d),
+\]
+and it is this quantity, not the raw MLE product, that is used to rank documents.
 
 \begin{examplebox}[Worked Example 5.2 -- Query Likelihood with Jelinek--Mercer Smoothing]
 Vocabulary $\{\textsf{cat},\textsf{dog},\textsf{mouse}\}$. Document $d$: ``\textsf{cat cat dog}'', so $|d|=3$, $tf(\textsf{cat},d)=2$, $tf(\textsf{dog},d)=1$, $tf(\textsf{mouse},d)=0$.
@@ -1279,12 +1453,17 @@ Note that without smoothing, $P(q\mid d)$ would have been exactly $0$ (because \
 
 \subsection{Dirichlet Smoothing}
 
-\begin{formulabox}[Key Formula 5.4 -- Dirichlet-Prior Smoothing]
+Jelinek--Mercer's $\lambda$ is a single fixed knob: it mixes in the \emph{same proportion} of background probability regardless of whether $d$ is a two-word snippet or a ten-thousand-word article. That is an odd assumption -- a short document's MLE estimate is inherently noisier and deserves heavier smoothing, while a long document's own word counts are already fairly reliable and should be trusted more. \textbf{Dirichlet-prior smoothing} fixes this by smoothing not with a fixed weight but with a fixed \emph{pseudo-count} of extra, collection-flavored word occurrences added to every document, letting the effective mixing proportion adapt automatically to $d$'s length.
+
+Concretely, imagine augmenting $d$ with $\mu$ additional word occurrences, drawn according to the background distribution $P(t\mid C)$, before computing the MLE estimate on this enlarged pseudo-document. The count of term $t$ becomes $tf_{t,d} + \mu\,P(t\mid C)$ and the total length becomes $|d|+\mu$, giving:
 \[
-P_{\text{Dir}}(t\mid d) = \frac{tf_{t,d} + \mu\, P(t\mid C)}{|d| + \mu}
+P_{\text{Dir}}(t\mid d) = \frac{tf_{t,d} + \mu\, P(t\mid C)}{|d| + \mu},
 \]
-where $\mu$ is a single free parameter (behaving like a pseudo-count of ``extra'' collection-flavored word occurrences added to every document). Unlike Jelinek--Mercer's fixed $\lambda$, Dirichlet smoothing automatically smooths short documents more heavily than long ones, since $\mu$ is a constant while $|d|$ varies.
-\end{formulabox}
+where $\mu$ is the single free parameter controlling how many ``extra'' background occurrences are injected. Rewriting this as an interpolation makes the length-adaptive behavior explicit:
+\[
+P_{\text{Dir}}(t\mid d) = \frac{|d|}{|d|+\mu}\,P_{\text{mle}}(t\mid d) \;+\; \frac{\mu}{|d|+\mu}\,P(t\mid C),
+\]
+which has exactly the same linear-interpolation shape as Jelinek--Mercer, except the effective mixing weight $\mu/(|d|+\mu)$ now shrinks as $|d|$ grows: since $\mu$ is a constant while $|d|$ varies from document to document, short documents automatically receive a large dose of smoothing (their sparse counts are barely trustworthy) and long documents receive very little (their own statistics already dominate) -- entirely without hand-tuning $\lambda$ per document length, as a fixed-$\lambda$ JM model would require.
 
 \begin{exercisebox}[Practice Exercise 5.2]
 Using the same document $d$ (\textsf{cat cat dog}, $|d|=3$) and background probabilities as Worked Example 5.2, apply \textbf{Dirichlet smoothing with $\mu=5$} instead of Jelinek--Mercer, and recompute $P(q\mid d)$ for $q=$ ``\textsf{cat mouse}''.
@@ -1302,6 +1481,49 @@ P(q\mid d) = 0.375 \times 0.0625 = 0.02344
 \]
 
 \Note{Comparing the two smoothing methods on the identical document and query: $P_{JM}(q\mid d)=0.0192$ vs.\ $P_{\text{Dir}}(q\mid d)=0.02344$ -- different smoothing methods produce different absolute probabilities, which is expected (they encode different smoothing assumptions); only the \emph{ranking} across documents needs to be sensible, not the absolute magnitude.}
+
+\section{Neural Language Models and Dense Retrieval}
+
+Classical language models for IR -- even smoothed ones -- are still fundamentally counting words: two documents that describe the same idea using different vocabulary (``car'' vs.\ ``automobile'') look unrelated to a unigram model, because $P(t\mid d)$ only ever assigns mass to terms that literally occur in $d$. The deep learning revolution attacked this at the representation level: instead of a discrete distribution over vocabulary terms, every query and document is mapped to a \textbf{continuous dense vector} in a learned embedding space, where semantic similarity between texts becomes geometric closeness between vectors -- regardless of whether the exact same words were used.
+
+\begin{defbox}[Definition 5.5 -- Contextual Embeddings from Pre-trained Transformers]
+Pre-trained transformer encoders (BERT, RoBERTa, and their successors) learn, from massive unlabeled text, contextual representations in which a word's vector depends on the surrounding sentence rather than being fixed in isolation. Fine-tuning these encoders for retrieval yields representations where semantically related but lexically different terms -- e.g., ``car'' and ``automobile'' -- end up close together in vector space, directly solving the \textbf{vocabulary mismatch problem} that plagues purely term-based models like TF-IDF or classical query likelihood.
+\end{defbox}
+
+Turning contextual embeddings into a working retrieval system, however, still requires deciding \emph{how} a query and a document are compared, and here two architectures make fundamentally different speed/accuracy trade-offs.
+
+\begin{defbox}[Definition 5.6 -- Bi-Encoders (Dense Retrieval)]
+A bi-encoder passes the query and the document through the transformer \textbf{independently}, each producing its own fixed-size dense vector, with no cross-attention between the two texts. Relevance is then just a similarity score between the two vectors -- cosine similarity or inner product. Because document vectors can be computed once, offline, and indexed for \textbf{approximate nearest neighbor (ANN) search}, a bi-encoder can retrieve from millions of documents in milliseconds at query time. Models such as \textbf{DPR} (Dense Passage Retrieval) and \textbf{Contriever} follow this design, making bi-encoders the workhorse of first-stage dense retrieval, playing the same role dense TF-IDF/BM25 retrieval played in classical IR.
+\end{defbox}
+
+\begin{defbox}[Definition 5.7 -- Cross-Encoders]
+A cross-encoder instead feeds the query and document \textbf{together} as a single input, letting every attention layer of the transformer directly relate query tokens to document tokens before producing one relevance score. This joint attention captures fine-grained interactions a bi-encoder's independent vectors cannot, making cross-encoders substantially more accurate -- but the score cannot be precomputed, since it depends on the specific query-document pair, so every candidate document requires a full forward pass through the transformer at query time. This is far too expensive to run over an entire collection.
+\end{defbox}
+
+\begin{formulabox}[Key Insight 5.1 -- The Standard Two-Stage Pipeline]
+Because bi-encoders are fast but less precise, and cross-encoders are precise but slow, modern dense retrieval systems combine them in a \textbf{retrieve-then-rerank} pipeline: a bi-encoder first retrieves a broad candidate set (e.g., top-$1000$) from the full collection via cheap ANN search, and a cross-encoder then \textbf{reranks} only that small candidate set (e.g., top-$100$) to produce the final, accurate ordering. This mirrors the classical IR pattern of a cheap first-stage ranker (BM25) followed by a more expensive learning-to-rank reranker, but with transformer encoders in both roles.
+\end{formulabox}
+
+\section{Large Language Models for IR (LLM4IR) and Retrieval-Augmented Generation}
+
+The most recent shift is that large language models no longer sit only at the end of the pipeline as a generator of prose -- they are now woven into essentially every stage of the retrieval process itself, from reformulating the query to ranking candidates to producing the final answer grounded in retrieved evidence.
+
+\begin{center}
+\begin{tabular}{@{}p{3.6cm}p{9.4cm}@{}}
+\toprule
+\textbf{Pipeline Stage} & \textbf{Role of Language Models / LLMs} \\
+\midrule
+Query Rewriting / Expansion & Expanding short, ambiguous queries; rewriting multi-turn conversational queries into a standalone search query; or generating a \textbf{pseudo-document} that answers the query and using \emph{that} as the search vector (HyDE -- Hypothetical Document Embeddings). \\
+Indexing / Retrieval & \textbf{Model-based search}, e.g.\ a Differentiable Search Index (DSI), where a single generative LM is trained to directly output a relevant document's ID as text, collapsing the index and the retriever into one model. \\
+Reranking & Zero-shot or few-shot prompting of an LLM to judge and reorder top candidates by subtle contextual relevance that shallow lexical or even bi-encoder similarity scores miss. \\
+Generation (RAG) & Grounding the LLM's generated response in the top-retrieved passages, so the model synthesizes an answer from actual evidence rather than relying purely on its parametric memory -- reducing hallucination and enabling up-to-date, source-attributable answers. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{defbox}[Definition 5.8 -- Retrieval-Augmented Generation (RAG)]
+RAG couples a retriever (classical, dense, or hybrid) with a generative LLM: given a user query, the retriever fetches the top-$k$ most relevant passages from an external corpus, and these passages are inserted into the LLM's prompt as context alongside the query. The LLM then generates its answer conditioned on this retrieved evidence rather than on its training data alone. This lets a general-purpose LLM answer questions about private, proprietary, or rapidly changing information without retraining the model itself, and it gives the answer a traceable evidentiary basis -- the very same goal that motivated ranked retrieval in Week 1, now serving generation instead of a ranked list.
+\end{defbox}
 
 % ======================================================================
 % WEEK 6
